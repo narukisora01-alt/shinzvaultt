@@ -35,7 +35,7 @@ def callback():
     }).json()
 
     session["user"] = user
-    return redirect("/dashboard")
+    return redirect("/dashboard.html")
 
 @app.route("/api/me")
 def me():

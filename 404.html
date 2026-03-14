@@ -4,139 +4,42 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ShinzVault — 404</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
-      background: #0b0b0b;
-      font-family: 'Space Mono', monospace;
-    }
-    canvas { position: fixed; inset: 0; display: block; }
-
-    #ui {
-      position: fixed; inset: 0; z-index: 10;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 14px; pointer-events: none;
-    }
-
-    #code {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(6rem, 18vw, 12rem);
-      letter-spacing: 0.1em;
-      color: #fff;
-      line-height: 1;
-      opacity: 0;
-      animation: fadeUp 0.8s ease 0.2s forwards;
-    }
-    #code span { color: #d62828; }
-
-    #divider {
-      width: 60px; height: 2px;
-      background: #d62828;
-      box-shadow: 0 0 10px #d62828, 0 0 24px rgba(214,40,40,0.4);
-      opacity: 0;
-      animation: fadeUp 0.8s ease 0.4s forwards;
-    }
-
-    #msg {
-      font-size: 0.65rem;
-      letter-spacing: 0.3em;
-      color: rgba(255,255,255,0.3);
-      text-transform: uppercase;
-      opacity: 0;
-      animation: fadeUp 0.8s ease 0.5s forwards;
-    }
-
-    #back {
-      pointer-events: all;
-      margin-top: 8px;
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: #fff;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      text-decoration: none;
-      padding: 11px 22px;
-      border-radius: 7px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s, transform 0.15s;
-      opacity: 0;
-      animation: fadeUp 0.8s ease 0.65s forwards;
-    }
-    #back:hover {
-      background: rgba(0,0,0,0.75);
-      border-color: rgba(255,255,255,0.22);
-      transform: translateY(-1px);
-    }
-    #back svg { width: 14px; height: 14px; }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    html, body { width:100%; height:100%; overflow:hidden; background:#0b0b0b; font-family:'Space Mono',monospace; }
+    canvas { position:fixed; inset:0; display:block; }
+    #ui { position:fixed; inset:0; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; pointer-events:none; }
+    #code { font-family:'Bebas Neue',sans-serif; font-size:clamp(6rem,18vw,12rem); letter-spacing:.1em; color:#fff; line-height:1; opacity:0; animation:fu .8s ease .2s forwards; }
+    #code span { color:#d62828; }
+    #div { width:56px; height:2px; background:#d62828; box-shadow:0 0 10px #d62828,0 0 24px rgba(214,40,40,.4); opacity:0; animation:fu .8s ease .4s forwards; }
+    #msg { font-size:.62rem; letter-spacing:.3em; color:rgba(255,255,255,.28); text-transform:uppercase; opacity:0; animation:fu .8s ease .5s forwards; }
+    #back { pointer-events:all; margin-top:8px; display:flex; align-items:center; gap:8px; background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.1); color:#fff; font-family:'Space Mono',monospace; font-size:.62rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; text-decoration:none; padding:11px 22px; border-radius:7px; transition:background .2s,border-color .2s,transform .15s; opacity:0; animation:fu .8s ease .65s forwards; }
+    #back:hover { background:rgba(0,0,0,.75); border-color:rgba(255,255,255,.22); transform:translateY(-1px); }
+    #back svg { width:14px; height:14px; }
+    @keyframes fu { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
   </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-
 <div id="ui">
   <div id="code"><span>4</span>0<span>4</span></div>
-  <div id="divider"></div>
+  <div id="div"></div>
   <div id="msg">Page not found</div>
-  <a id="back" href="/dashboard.html">
+  <a id="back" href="/index.html">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-    Back to Dashboard
+    Go Home
   </a>
 </div>
-
 <script>
-  const canvas = document.getElementById('c');
-  const ctx    = canvas.getContext('2d');
-  let W = canvas.width  = window.innerWidth;
-  let H = canvas.height = window.innerHeight;
-  const mouse = { x: W / 2, y: H / 2 };
-  window.addEventListener('resize', () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
-  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-
-  class Dot {
-    constructor() {
-      this.x = Math.random() * W; this.y = Math.random() * H;
-      this.r = Math.random() < 0.15 ? 1.8 + Math.random() * 1.2 : 0.6 + Math.random() * 1.0;
-      this.alpha = 0.12 + Math.random() * 0.55;
-      this.vx = (Math.random() - 0.5) * 0.12;
-      this.vy = (Math.random() - 0.5) * 0.12;
-    }
-    update() {
-      const dx = mouse.x - this.x, dy = mouse.y - this.y;
-      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      this.vx += (dx / dist) * 0.004; this.vy += (dy / dist) * 0.004;
-      this.vx *= 0.98; this.vy *= 0.98;
-      this.x += this.vx; this.y += this.vy;
-      if (this.x < -4) this.x = W + 4; if (this.x > W + 4) this.x = -4;
-      if (this.y < -4) this.y = H + 4; if (this.y > H + 4) this.y = -4;
-    }
-    draw() {
-      ctx.save(); ctx.globalAlpha = this.alpha;
-      ctx.fillStyle = '#c0392b';
-      ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-      ctx.fill(); ctx.restore();
-    }
-  }
-
-  const dots = Array.from({ length: 80 }, () => new Dot());
-  function loop() {
-    ctx.clearRect(0, 0, W, H);
-    for (const d of dots) { d.update(); d.draw(); }
-    requestAnimationFrame(loop);
-  }
-  loop();
+  const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+  let W=canvas.width=window.innerWidth,H=canvas.height=window.innerHeight;
+  const mouse={x:W/2,y:H/2};
+  window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;});
+  window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+  class Dot{constructor(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()<.15?1.8+Math.random()*1.2:.6+Math.random()*1;this.alpha=.12+Math.random()*.55;this.vx=(Math.random()-.5)*.12;this.vy=(Math.random()-.5)*.12;}update(){const dx=mouse.x-this.x,dy=mouse.y-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;this.vx+=(dx/d)*.004;this.vy+=(dy/d)*.004;this.vx*=.98;this.vy*=.98;this.x+=this.vx;this.y+=this.vy;if(this.x<-4)this.x=W+4;if(this.x>W+4)this.x=-4;if(this.y<-4)this.y=H+4;if(this.y>H+4)this.y=-4;}draw(){ctx.save();ctx.globalAlpha=this.alpha;ctx.fillStyle='#c0392b';ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fill();ctx.restore();}}
+  const dots=Array.from({length:80},()=>new Dot());
+  (function loop(){ctx.clearRect(0,0,W,H);dots.forEach(d=>{d.update();d.draw();});requestAnimationFrame(loop);})();
 </script>
 </body>
 </html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShinzVault — Stats</title>
+  <script src="/theme.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100%;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);overflow:hidden;transition:background .3s,color .3s}
+    canvas{position:fixed;inset:0;z-index:0}
+    #app{position:relative;z-index:1;display:flex;height:100vh}
+
+    #sb{width:54px;flex-shrink:0;border-right:1px solid var(--border);background:rgba(0,0,0,0.35);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:6px}
+    .si{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--muted);cursor:pointer;transition:color .2s,background .2s;position:relative;text-decoration:none}
+    .si:hover,.si.on{color:var(--text);background:rgba(214,40,40,0.15)}
+    .si svg{width:17px;height:17px}
+    .si-badge{position:absolute;top:2px;right:2px;background:#d62828;color:#fff;font-size:7px;font-weight:700;width:12px;height:12px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+    .si-av{margin-top:auto;width:30px;height:30px;border-radius:50%;overflow:hidden;cursor:pointer;border:1.5px solid var(--border);transition:border-color .2s}
+    .si-av:hover{border-color:rgba(255,255,255,0.3)}
+    .si-av img{width:100%;height:100%;object-fit:cover}
+
+    #main{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 22px;display:flex;flex-direction:column;gap:14px}
+    #main::-webkit-scrollbar{width:3px}
+    #main::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+    .breadcrumb{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+    .breadcrumb span{color:var(--text);font-weight:600}
+    .breadcrumb svg{width:12px;height:12px;opacity:.4}
+
+    #toolbar{display:flex;align-items:center;justify-content:space-between}
+    .loaded{font-size:.72rem;color:var(--muted)}
+    .loaded b{color:var(--text);font-weight:600}
+
+    .filters{display:flex;align-items:center;gap:6px}
+    .fbtn{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Inter',sans-serif;font-size:.65rem;font-weight:500;cursor:pointer;transition:color .15s,border-color .15s,background .15s}
+    .fbtn svg{width:12px;height:12px}
+    .fbtn:hover{color:var(--text);border-color:rgba(128,128,128,0.3)}
+    .fbtn.on{background:rgba(128,128,128,0.1);color:var(--text);border-color:rgba(128,128,128,0.3)}
+
+    #table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;flex:1}
+    table{width:100%;border-collapse:collapse}
+    thead th{font-size:.63rem;color:var(--muted);font-weight:500;text-align:left;padding:10px 16px;border-bottom:1px solid var(--border);white-space:nowrap;letter-spacing:.04em}
+    thead th svg{width:11px;height:11px;vertical-align:middle;margin-left:3px;opacity:.45}
+    tbody td{font-size:.68rem;padding:10px 16px;border-bottom:1px solid rgba(128,128,128,0.04);vertical-align:middle;color:var(--text)}
+    tbody tr:last-child td{border-bottom:none}
+    .td-nil{text-align:center;padding:60px;font-size:.68rem;color:var(--muted)}
+
+    #footer{display:flex;align-items:center;justify-content:space-between;padding:2px 0}
+    .foot-l{font-size:.65rem;color:var(--muted)}
+    .pager{display:flex;align-items:center;gap:8px;font-size:.65rem;color:var(--muted)}
+    .pbtn{padding:4px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Inter',sans-serif;font-size:.63rem;cursor:pointer;transition:color .15s,border-color .15s}
+    .pbtn:hover{color:var(--text);border-color:rgba(128,128,128,0.3)}
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="app">
+  <nav id="sb">
+    <a class="si" href="/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></a>
+    <a class="si on" href="/stats.html" style="position:relative"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="si-badge">0</div></a>
+    <a class="si" href="/settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a>
+    <div class="si-av" onclick="window.location.href='/settings.html'"><img id="nav-av" src="" alt=""/></div>
+  </nav>
+
+  <div id="main">
+    <div class="breadcrumb">Dashboard <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><span>Stats</span></div>
+
+    <div id="toolbar">
+      <div class="loaded">Loaded <b>0</b> of <b>0</b> account(s)</div>
+      <div class="filters">
+        <button class="fbtn on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>All</button>
+        <button class="fbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Username</button>
+        <button class="fbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>Recent</button>
+        <button class="fbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Balance</button>
+        <button class="fbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>RAP</button>
+        <button class="fbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Summary</button>
+      </div>
+    </div>
+
+    <div id="table-wrap">
+      <table>
+        <thead><tr>
+          <th>USER <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></th>
+          <th>VALUE <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></th>
+          <th>COOKIE <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></th>
+          <th>PASSWORD</th>
+        </tr></thead>
+        <tbody><tr><td colspan="4" class="td-nil">No results.</td></tr></tbody>
+      </table>
+    </div>
+
+    <div id="footer">
+      <div class="foot-l">No accounts to display.</div>
+      <div class="pager">Page 1 of 1 <button class="pbtn">Previous</button><button class="pbtn">Next</button></div>
+    </div>
+  </div>
+</div>
+<script>
+(async()=>{try{const r=await fetch('/api/me');if(!r.ok){window.location.href='/login.html';return;}const u=await r.json();document.getElementById('nav-av').src=u.avatar?`https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`:`https://cdn.discordapp.com/embed/avatars/0.png`;}catch{window.location.href='/login.html';}})();
+document.querySelectorAll('.fbtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');}));
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let W=canvas.width=window.innerWidth,H=canvas.height=window.innerHeight;
+const mouse={x:W/2,y:H/2};
+window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;});
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+class Dot{constructor(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()<.15?1.8+Math.random()*1.2:.6+Math.random()*1;this.alpha=.07+Math.random()*.3;this.vx=(Math.random()-.5)*.1;this.vy=(Math.random()-.5)*.1;}update(){const dx=mouse.x-this.x,dy=mouse.y-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;this.vx+=(dx/d)*.003;this.vy+=(dy/d)*.003;this.vx*=.98;this.vy*=.98;this.x+=this.vx;this.y+=this.vy;if(this.x<-4)this.x=W+4;if(this.x>W+4)this.x=-4;if(this.y<-4)this.y=H+4;if(this.y>H+4)this.y=-4;}draw(){ctx.save();ctx.globalAlpha=this.alpha;ctx.fillStyle='#c0392b';ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fill();ctx.restore();}}
+const dots=Array.from({length:80},()=>new Dot());
+(function loop(){ctx.clearRect(0,0,W,H);dots.forEach(d=>{d.update();d.draw();});requestAnimationFrame(loop);})();
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShinzVault</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #0b0b0b;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      display: block;
+    }
+
+    #ui {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 10;
+      gap: 28px;
+    }
+
+    #logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3.2rem, 9vw, 6.5rem);
+      letter-spacing: 0.2em;
+      color: #fff;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.3s forwards;
+    }
+    #logo span { color: #d62828; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Simple bar — starts at 0, fills to 100% */
+    #bar-wrap {
+      width: 160px;
+      height: 2px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.7s forwards;
+      overflow: hidden;
+    }
+
+    #bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #d62828;
+      border-radius: 2px;
+      box-shadow: 0 0 8px #d62828, 0 0 20px rgba(214,40,40,0.5);
+      transition: width 0.1s linear;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div id="ui">
+  <div id="logo">SHINZ<span>VAULT</span></div>
+  <div id="bar-wrap">
+    <div id="bar-fill"></div>
+  </div>
+</div>
+
+<script>
+  // ── Canvas: sparse red dots exactly like the screenshot ──────────
+  const canvas = document.getElementById('c');
+  const ctx    = canvas.getContext('2d');
+
+  let W = canvas.width  = window.innerWidth;
+  let H = canvas.height = window.innerHeight;
+
+  const mouse = { x: W / 2, y: H / 2 };
+
+  window.addEventListener('resize', () => {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  });
+
+  window.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+
+  class Dot {
+    constructor() {
+      this.reset();
+    }
+
+    reset() {
+      this.x     = Math.random() * W;
+      this.y     = Math.random() * H;
+      this.r     = Math.random() < 0.15
+                    ? 1.8 + Math.random() * 1.2   // a few bigger ones
+                    : 0.6 + Math.random() * 1.0;  // mostly small
+      this.alpha = 0.12 + Math.random() * 0.55;
+      this.vx    = (Math.random() - 0.5) * 0.12;
+      this.vy    = (Math.random() - 0.5) * 0.12;
+    }
+
+    update() {
+      // Drift toward mouse very slightly
+      const dx   = mouse.x - this.x;
+      const dy   = mouse.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      this.vx   += (dx / dist) * 0.004;
+      this.vy   += (dy / dist) * 0.004;
+
+      // Dampen
+      this.vx *= 0.98;
+      this.vy *= 0.98;
+
+      this.x += this.vx;
+      this.y += this.vy;
+
+      // Wrap
+      if (this.x < -4) this.x = W + 4;
+      if (this.x > W + 4) this.x = -4;
+      if (this.y < -4) this.y = H + 4;
+      if (this.y > H + 4) this.y = -4;
+    }
+
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = this.alpha;
+      ctx.fillStyle   = '#c0392b';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  const dots = Array.from({ length: 80 }, () => new Dot());
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    for (const d of dots) { d.update(); d.draw(); }
+    requestAnimationFrame(loop);
+  }
+
+  loop();
+
+  // ── Loading bar ──────────────────────────────────────────────────
+  const fill = document.getElementById('bar-fill');
+  let pct = 0;
+
+  const stops = [
+    { to: 25, ms: 500 },
+    { to: 50, ms: 700 },
+    { to: 73, ms: 600 },
+    { to: 90, ms: 800 },
+    { to: 100, ms: 400 },
+  ];
+
+  function animTo(target, ms, done) {
+    const start = performance.now();
+    const from  = pct;
+    (function step(now) {
+      const t    = Math.min((now - start) / ms, 1);
+      const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+      pct        = from + (target - from) * ease;
+      fill.style.width = pct + '%';
+      if (t < 1) requestAnimationFrame(step);
+      else if (done) done();
+    })(start);
+  }
+
+  function run(i) {
+    if (i >= stops.length) return;
+    setTimeout(() =>
+      animTo(stops[i].to, stops[i].ms, () => run(i + 1)),
+      i === 0 ? 900 : 180
+    );
+  }
+
+  run(0);
+</script>
+</body>
+</html>

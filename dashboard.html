@@ -1,112 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ShinzVault — Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="/theme.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --red: #d62828; --red-dim: rgba(214,40,40,0.15);
-      --bg: #0c0c0c; --surface: rgba(255,255,255,0.03);
-      --border: rgba(255,255,255,0.07); --muted: rgba(255,255,255,0.28);
-    }
-    html, body { width:100%; height:100%; background:var(--bg); font-family:'Inter',sans-serif; color:#fff; overflow:hidden; }
-    canvas { position:fixed; inset:0; z-index:0; }
-    #app { position:relative; z-index:1; display:flex; height:100vh; }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100%;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);overflow:hidden;transition:background .3s,color .3s}
+    canvas{position:fixed;inset:0;z-index:0}
+    #app{position:relative;z-index:1;display:flex;height:100vh}
 
-    #sidebar {
-      width:54px; flex-shrink:0;
-      border-right:1px solid var(--border);
-      background:rgba(0,0,0,0.35);
-      display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:4px;
-    }
-    .si { width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:8px; color:var(--muted); cursor:pointer; transition:color .2s,background .2s; position:relative; }
-    .si:hover,.si.on { color:#fff; background:var(--red-dim); }
-    .si svg { width:16px; height:16px; }
-    .si-badge { position:absolute; top:2px; right:2px; background:var(--red); color:#fff; font-size:7px; font-weight:700; width:12px; height:12px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
-    .si-av { width:28px; height:28px; border-radius:50%; overflow:hidden; margin-top:auto; cursor:pointer; }
-    .si-av img { width:100%; height:100%; object-fit:cover; }
+    /* Sidebar */
+    #sb{width:54px;flex-shrink:0;border-right:1px solid var(--border);background:rgba(0,0,0,0.35);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:6px}
+    .si{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--muted);cursor:pointer;transition:color .2s,background .2s;position:relative;text-decoration:none}
+    .si:hover,.si.on{color:var(--text);background:rgba(214,40,40,0.15)}
+    .si svg{width:17px;height:17px}
+    .si-badge{position:absolute;top:2px;right:2px;background:#d62828;color:#fff;font-size:7px;font-weight:700;width:12px;height:12px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+    .si-av{margin-top:auto;width:30px;height:30px;border-radius:50%;overflow:hidden;cursor:pointer;border:1.5px solid var(--border);transition:border-color .2s}
+    .si-av:hover{border-color:rgba(255,255,255,0.3)}
+    .si-av img{width:100%;height:100%;object-fit:cover}
 
-    #main { flex:1; overflow-y:auto; overflow-x:hidden; padding:16px 18px 24px; display:flex; flex-direction:column; gap:12px; }
-    #main::-webkit-scrollbar { width:3px; }
-    #main::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+    /* Main */
+    #main{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 22px;display:flex;flex-direction:column;gap:14px}
+    #main::-webkit-scrollbar{width:3px}
+    #main::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
-    #top-row { display:grid; grid-template-columns:1fr 1fr 1fr 210px; gap:10px; }
+    .breadcrumb{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+    .breadcrumb span{color:var(--text);font-weight:600}
+    .breadcrumb svg{width:12px;height:12px;opacity:.4}
 
-    .sc { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px 10px; display:flex; flex-direction:column; gap:3px; }
-    .sc-head { display:flex; align-items:center; justify-content:space-between; }
-    .sc-lbl { font-size:.68rem; color:var(--muted); font-weight:500; }
-    .sc-ico svg { width:13px; height:13px; color:var(--muted); }
-    .sc-val { font-size:1.65rem; font-weight:700; line-height:1.1; margin:2px 0; }
-    .sc-spark { position:relative; height:34px; margin:2px 0; }
-    .sc-spark svg { width:100%; height:100%; display:block; }
-    .sc-badge { position:absolute; bottom:2px; right:0; background:var(--red-dim); border:1px solid rgba(214,40,40,0.3); color:var(--red); font-size:.58rem; font-weight:700; padding:2px 5px; border-radius:4px; }
-    .sc-sub { font-size:.58rem; color:var(--muted); }
+    /* Top row */
+    #top-row{display:grid;grid-template-columns:1fr 1fr 1fr 210px;gap:10px}
 
-    #rp { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 13px; display:flex; flex-direction:column; gap:8px; }
-    .rp-chart { height:48px; }
-    .rp-chart svg { width:100%; height:100%; display:block; }
-    .rp-week { display:flex; justify-content:space-between; font-size:.52rem; color:var(--muted); }
-    .rp-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; padding-top:8px; border-top:1px solid var(--border); }
-    .rp-stat .rs-lbl { font-size:.56rem; color:var(--muted); margin-bottom:2px; }
-    .rp-stat .rs-val { font-size:.95rem; font-weight:700; }
-    .rp-stat .rs-sub { font-size:.52rem; color:var(--muted); margin-top:1px; }
+    .sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px 10px;display:flex;flex-direction:column;gap:3px}
+    .sc-head{display:flex;align-items:center;justify-content:space-between}
+    .sc-lbl{font-size:.68rem;color:var(--muted);font-weight:500}
+    .sc-ico svg{width:13px;height:13px;color:var(--muted)}
+    .sc-val{font-size:1.65rem;font-weight:700;line-height:1.1;margin:2px 0;color:var(--text)}
+    .sc-spark{position:relative;height:34px;margin:2px 0}
+    .sc-spark svg{width:100%;height:100%;display:block}
+    .sc-badge{position:absolute;bottom:2px;right:0;background:rgba(214,40,40,0.15);border:1px solid rgba(214,40,40,0.3);color:#d62828;font-size:.58rem;font-weight:700;padding:2px 5px;border-radius:4px}
+    .sc-sub{font-size:.58rem;color:var(--muted)}
 
-    #mid-row { display:grid; grid-template-columns:1fr 210px; gap:10px; }
-    .panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
-    .p-title { font-size:.68rem; font-weight:600; color:rgba(255,255,255,0.55); margin-bottom:10px; }
-    #ov-wrap { height:150px; }
-    #ov-wrap svg { width:100%; height:100%; display:block; }
-    .ov-week { display:flex; justify-content:space-between; font-size:.57rem; color:var(--muted); margin-top:6px; }
-    #lb { display:flex; flex-direction:column; }
-    .lb-empty { flex:1; display:flex; align-items:center; justify-content:center; font-size:.6rem; color:var(--muted); padding:18px 0; }
+    #rp{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 13px;display:flex;flex-direction:column;gap:8px}
+    .rp-chart{height:48px}
+    .rp-chart svg{width:100%;height:100%;display:block}
+    .rp-week{display:flex;justify-content:space-between;font-size:.52rem;color:var(--muted)}
+    .rp-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding-top:8px;border-top:1px solid var(--border)}
+    .rp-stat .rs-lbl{font-size:.56rem;color:var(--muted);margin-bottom:2px}
+    .rp-stat .rs-val{font-size:.95rem;font-weight:700;color:var(--text)}
+    .rp-stat .rs-sub{font-size:.52rem;color:var(--muted);margin-top:1px}
 
-    #live { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
-    .live-hd { text-align:center; margin-bottom:10px; }
-    .live-t { font-size:.82rem; font-weight:700; }
-    .live-s { font-size:.58rem; color:var(--muted); margin-top:2px; cursor:pointer; }
-    .live-s:hover { color:var(--red); }
-    table { width:100%; border-collapse:collapse; }
-    thead th { font-size:.6rem; color:var(--muted); font-weight:500; text-align:left; padding:5px 8px; border-bottom:1px solid var(--border); white-space:nowrap; }
-    thead th svg { width:10px; height:10px; vertical-align:middle; margin-left:2px; opacity:.5; }
-    tbody td { font-size:.65rem; padding:7px 8px; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; }
-    tbody tr:last-child td { border-bottom:none; }
-    .td-u { display:flex; align-items:center; gap:7px; }
-    .td-av { width:22px; height:22px; border-radius:50%; object-fit:cover; background:var(--border); }
-    .td-nil { text-align:center; padding:18px; font-size:.6rem; color:var(--muted); }
+    /* Mid row */
+    #mid-row{display:grid;grid-template-columns:1fr 210px;gap:10px}
+    .panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+    .p-title{font-size:.68rem;font-weight:600;color:var(--muted);margin-bottom:10px}
+    #ov-wrap{height:150px}
+    #ov-wrap svg{width:100%;height:100%;display:block}
+    .ov-week{display:flex;justify-content:space-between;font-size:.57rem;color:var(--muted);margin-top:6px}
+    #lb{display:flex;flex-direction:column}
+    .lb-empty{display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--muted);padding:18px 0}
+
+    /* Live */
+    #live{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+    .live-hd{text-align:center;margin-bottom:10px}
+    .live-t{font-size:.82rem;font-weight:700;color:var(--text)}
+    .live-s{font-size:.58rem;color:var(--muted);margin-top:2px;cursor:pointer}
+    .live-s:hover{color:#d62828}
+    table{width:100%;border-collapse:collapse}
+    thead th{font-size:.6rem;color:var(--muted);font-weight:500;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+    thead th svg{width:10px;height:10px;vertical-align:middle;margin-left:2px;opacity:.5}
+    tbody td{font-size:.65rem;padding:7px 8px;border-bottom:1px solid rgba(128,128,128,0.05);vertical-align:middle;color:var(--text)}
+    tbody tr:last-child td{border-bottom:none}
+    .td-nil{text-align:center;padding:18px;font-size:.6rem;color:var(--muted)}
   </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="app">
-  <nav id="sidebar">
-    <div class="si on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
-    <div class="si" style="position:relative"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="si-badge">0</div></div>
-    <div class="si"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
-    <div class="si-av" onclick="window.location.href='/api/logout'"><img id="nav-av" src="" alt=""/></div>
+  <nav id="sb">
+    <a class="si on" href="/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></a>
+    <a class="si" href="/stats.html" style="position:relative"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="si-badge">0</div></a>
+    <a class="si" href="/settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a>
+    <div class="si-av" onclick="window.location.href='/settings.html'"><img id="nav-av" src="" alt=""/></div>
   </nav>
 
   <div id="main">
+    <div class="breadcrumb">Dashboard <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><span>Overview</span></div>
+
     <div id="top-row">
       <div class="sc">
         <div class="sc-head"><span class="sc-lbl">Total Accounts</span><span class="sc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span></div>
         <div class="sc-val">0</div>
         <div class="sc-spark"><svg viewBox="0 0 200 34" preserveAspectRatio="none"><polyline points="0,28 50,28 100,28 150,28 200,28" fill="none" stroke="#d62828" stroke-width="1.5" stroke-dasharray="5 4" opacity=".7"/></svg><div class="sc-badge">↑ 0%</div></div>
-        <div class="sc-sub">+0 today &bull; 0 Daily</div>
+        <div class="sc-sub">+0 today • 0 Daily</div>
       </div>
       <div class="sc">
-        <div class="sc-head"><span class="sc-lbl">Total Visits</span><span class="sc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span></div>
+        <div class="sc-head"><span class="sc-lbl">Total Robux</span><span class="sc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></svg></span></div>
         <div class="sc-val">0</div>
         <div class="sc-spark"><svg viewBox="0 0 200 34" preserveAspectRatio="none"><polyline points="0,28 50,28 100,28 150,28 200,28" fill="none" stroke="#d62828" stroke-width="1.5" stroke-dasharray="5 4" opacity=".7"/></svg><div class="sc-badge">↑ 0%</div></div>
-        <div class="sc-sub">+0 today &bull; 0 Daily</div>
+        <div class="sc-sub">+0 today • 0 Daily</div>
       </div>
       <div class="sc">
-        <div class="sc-head"><span class="sc-lbl">Total URL Clicks</span><span class="sc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span></div>
+        <div class="sc-head"><span class="sc-lbl">Total Pending</span><span class="sc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></span></div>
         <div class="sc-val">0</div>
         <div class="sc-spark"><svg viewBox="0 0 200 34" preserveAspectRatio="none"><polyline points="0,28 50,28 100,28 150,28 200,28" fill="none" stroke="#d62828" stroke-width="1.5" stroke-dasharray="5 4" opacity=".7"/></svg><div class="sc-badge">↑ 0%</div></div>
-        <div class="sc-sub">+0 today &bull; 0 Daily</div>
+        <div class="sc-sub">+0 today • 0 Daily</div>
       </div>
       <div id="rp">
         <div class="rp-chart"><svg viewBox="0 0 210 48" preserveAspectRatio="none"><polyline points="0,40 35,40 70,40 105,40 140,40 175,40 210,40" fill="none" stroke="#d62828" stroke-width="1.5" stroke-dasharray="5 4" opacity=".7"/></svg></div>
@@ -123,9 +124,9 @@
       <div class="panel">
         <div class="p-title">Overview</div>
         <div id="ov-wrap"><svg viewBox="0 0 700 150" preserveAspectRatio="none">
-          <line x1="0" y1="130" x2="700" y2="130" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-          <line x1="0" y1="90"  x2="700" y2="90"  stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-          <line x1="0" y1="50"  x2="700" y2="50"  stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          <line x1="0" y1="130" x2="700" y2="130" stroke="rgba(128,128,128,0.08)" stroke-width="1"/>
+          <line x1="0" y1="90"  x2="700" y2="90"  stroke="rgba(128,128,128,0.05)" stroke-width="1"/>
+          <line x1="0" y1="50"  x2="700" y2="50"  stroke="rgba(128,128,128,0.05)" stroke-width="1"/>
           <polyline points="0,130 100,130 200,130 300,130 400,130 500,130 600,130 700,130" fill="none" stroke="#d62828" stroke-width="1.5" stroke-dasharray="6 4" opacity=".5"/>
         </svg></div>
         <div class="ov-week"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
@@ -137,51 +138,28 @@
     </div>
 
     <div id="live">
-      <div class="live-hd">
-        <div class="live-t">Live Hits (GLOBAL)</div>
-        <div class="live-s">Click to switch to Live Visits</div>
-      </div>
+      <div class="live-hd"><div class="live-t">Live Hits (GLOBAL)</div><div class="live-s">Click to switch to Live Visits</div></div>
       <table>
         <thead><tr>
           <th>User <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></th>
           <th>Time <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></th>
-          <th>Balance <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg></th>
-          <th>Summary <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></th>
-          <th>Rap <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></th>
-          <th>Hitter <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></th>
+          <th>Balance</th><th>Summary</th><th>Rap</th><th>Hitter</th>
         </tr></thead>
         <tbody><tr><td colspan="6" class="td-nil">No hits yet</td></tr></tbody>
       </table>
     </div>
   </div>
 </div>
-
 <script>
-  (async () => {
-    try {
-      const res = await fetch('/api/me');
-      if (!res.ok) { window.location.href = '/login.html'; return; }
-      const user = await res.json();
-      const avatar = user.avatar
-        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
-        : `https://cdn.discordapp.com/embed/avatars/0.png`;
-      document.getElementById('nav-av').src = avatar;
-    } catch { window.location.href = '/login.html'; }
-  })();
-
-  const canvas = document.getElementById('c');
-  const ctx = canvas.getContext('2d');
-  let W = canvas.width = window.innerWidth, H = canvas.height = window.innerHeight;
-  const mouse = { x:W/2, y:H/2 };
-  window.addEventListener('resize', () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
-  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-  class Dot {
-    constructor() { this.x=Math.random()*W; this.y=Math.random()*H; this.r=Math.random()<.15?1.8+Math.random()*1.2:.6+Math.random()*1; this.alpha=.06+Math.random()*.25; this.vx=(Math.random()-.5)*.1; this.vy=(Math.random()-.5)*.1; }
-    update() { const dx=mouse.x-this.x,dy=mouse.y-this.y,d=Math.sqrt(dx*dx+dy*dy)||1; this.vx+=(dx/d)*.003; this.vy+=(dy/d)*.003; this.vx*=.98; this.vy*=.98; this.x+=this.vx; this.y+=this.vy; if(this.x<-4)this.x=W+4; if(this.x>W+4)this.x=-4; if(this.y<-4)this.y=H+4; if(this.y>H+4)this.y=-4; }
-    draw() { ctx.save(); ctx.globalAlpha=this.alpha; ctx.fillStyle='#c0392b'; ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fill(); ctx.restore(); }
-  }
-  const dots = Array.from({length:80},()=>new Dot());
-  (function loop(){ ctx.clearRect(0,0,W,H); dots.forEach(d=>{d.update();d.draw();}); requestAnimationFrame(loop); })();
+(async()=>{try{const r=await fetch('/api/me');if(!r.ok){window.location.href='/login.html';return;}const u=await r.json();document.getElementById('nav-av').src=u.avatar?`https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64`:`https://cdn.discordapp.com/embed/avatars/0.png`;}catch{window.location.href='/login.html';}})();
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let W=canvas.width=window.innerWidth,H=canvas.height=window.innerHeight;
+const mouse={x:W/2,y:H/2};
+window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;});
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+class Dot{constructor(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()<.15?1.8+Math.random()*1.2:.6+Math.random()*1;this.alpha=.07+Math.random()*.3;this.vx=(Math.random()-.5)*.1;this.vy=(Math.random()-.5)*.1;}update(){const dx=mouse.x-this.x,dy=mouse.y-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;this.vx+=(dx/d)*.003;this.vy+=(dy/d)*.003;this.vx*=.98;this.vy*=.98;this.x+=this.vx;this.y+=this.vy;if(this.x<-4)this.x=W+4;if(this.x>W+4)this.x=-4;if(this.y<-4)this.y=H+4;if(this.y>H+4)this.y=-4;}draw(){ctx.save();ctx.globalAlpha=this.alpha;ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--dot').trim()||'#c0392b';ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fill();ctx.restore();}}
+const dots=Array.from({length:80},()=>new Dot());
+(function loop(){ctx.clearRect(0,0,W,H);dots.forEach(d=>{d.update();d.draw();});requestAnimationFrame(loop);})();
 </script>
 </body>
 </html>

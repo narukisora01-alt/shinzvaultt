@@ -24,30 +24,38 @@ def callback():
             "code":          code,
             "redirect_uri":  REDIRECT_URI,
         },
-        headers={"Content-Type": "application/x-www-form-urlencoded"}
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        timeout=10
     )
 
     data = token_res.json()
     access_token = data.get("access_token")
     if not access_token:
-        return redirect("/login.html")
+        return redirect("/login.html?err=token")
 
     user = requests.get(
         "https://discord.com/api/users/@me",
-        headers={"Authorization": f"Bearer {access_token}"}
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=10
     ).json()
 
+    if "id" not in user:
+        return redirect("/login.html?err=user")
+
     payload = {
-        "id":          str(user.get("id", "")),
+        "id":          str(user["id"]),
         "username":    user.get("username", ""),
         "global_name": user.get("global_name") or user.get("username", ""),
-        "avatar":      user.get("avatar", ""),
+        "avatar":      user.get("avatar") or "",
         "exp":         int(time.time()) + 60 * 60 * 24 * 7
     }
 
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
-    response = make_response(redirect("/dashboard.html"))
-    response.set_cookie(
+    if isinstance(token, bytes):
+        token = token.decode("utf-8")
+
+    resp = make_response(redirect("/dashboard.html"))
+    resp.set_cookie(
         "sv_token", token,
         httponly=True,
         secure=True,
@@ -55,4 +63,4 @@ def callback():
         max_age=60 * 60 * 24 * 7,
         path="/"
     )
-    return response
+    return resp

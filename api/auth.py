@@ -6,12 +6,23 @@ app = Flask(__name__)
 CLIENT_ID     = os.environ.get("DISCORD_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("DISCORD_CLIENT_SECRET")
 REDIRECT_URI  = os.environ.get("DISCORD_REDIRECT_URI")
-SECRET_KEY    = os.environ.get("SECRET_KEY", "shinzvault_secret")
+SECRET_KEY    = os.environ.get("SECRET_KEY")
+
+def make_token(user):
+    payload = {
+        "id":          str(user["id"]),
+        "username":    user.get("username", ""),
+        "global_name": user.get("global_name") or user.get("username", ""),
+        "avatar":      user.get("avatar") or "",
+        "exp":         int(time.time()) + 60 * 60 * 24 * 7
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+    return token.decode("utf-8") if isinstance(token, bytes) else token
 
 @app.route("/api/login")
 def login():
     return redirect(
-        f"https://discord.com/oauth2/authorize"
+        "https://discord.com/oauth2/authorize"
         f"?client_id={CLIENT_ID}"
         f"&redirect_uri={REDIRECT_URI}"
         f"&response_type=code"
@@ -22,9 +33,9 @@ def login():
 def callback():
     code = request.args.get("code")
     if not code:
-        return redirect("/login.html")
+        return redirect("/login.html?e=nocode")
 
-    token_res = requests.post(
+    r = requests.post(
         "https://discord.com/api/oauth2/token",
         data={
             "client_id":     CLIENT_ID,
@@ -37,10 +48,9 @@ def callback():
         timeout=10
     )
 
-    data = token_res.json()
-    access_token = data.get("access_token")
+    access_token = r.json().get("access_token")
     if not access_token:
-        return redirect("/login.html?err=notoken")
+        return redirect(f"/login.html?e=notoken&d={r.text[:100]}")
 
     user = requests.get(
         "https://discord.com/api/users/@me",
@@ -49,25 +59,14 @@ def callback():
     ).json()
 
     if "id" not in user:
-        return redirect("/login.html?err=nouser")
+        return redirect("/login.html?e=nouser")
 
-    payload = {
-        "id":          str(user["id"]),
-        "username":    user.get("username", ""),
-        "global_name": user.get("global_name") or user.get("username", ""),
-        "avatar":      user.get("avatar") or "",
-        "exp":         int(time.time()) + 60 * 60 * 24 * 7
-    }
-
-    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
-    if isinstance(token, bytes):
-        token = token.decode("utf-8")
-
+    token = make_token(user)
     resp = make_response(redirect("/dashboard.html"))
     resp.set_cookie(
         "sv_token", token,
         httponly=True,
-        secure=True,
+        secure=False,
         samesite="Lax",
         max_age=60 * 60 * 24 * 7,
         path="/"

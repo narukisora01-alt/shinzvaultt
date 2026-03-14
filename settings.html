@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShinzVault — Settings</title>
+  <script src="/theme.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100%;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);overflow:hidden;transition:background .3s,color .3s}
+    canvas{position:fixed;inset:0;z-index:0}
+    #app{position:relative;z-index:1;display:flex;height:100vh}
+
+    #sb{width:54px;flex-shrink:0;border-right:1px solid var(--border);background:rgba(0,0,0,0.35);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:6px}
+    .si{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--muted);cursor:pointer;transition:color .2s,background .2s;position:relative;text-decoration:none}
+    .si:hover,.si.on{color:var(--text);background:rgba(214,40,40,0.15)}
+    .si svg{width:17px;height:17px}
+    .si-badge{position:absolute;top:2px;right:2px;background:#d62828;color:#fff;font-size:7px;font-weight:700;width:12px;height:12px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+    .si-av{margin-top:auto;width:30px;height:30px;border-radius:50%;overflow:hidden;cursor:pointer;border:1.5px solid var(--border);transition:border-color .2s}
+    .si-av:hover{border-color:rgba(255,255,255,0.3)}
+    .si-av img{width:100%;height:100%;object-fit:cover}
+
+    #main{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 22px;display:flex;flex-direction:column;gap:22px;max-width:640px}
+    #main::-webkit-scrollbar{width:3px}
+    #main::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+    .breadcrumb{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+    .breadcrumb span{color:var(--text);font-weight:600}
+    .breadcrumb svg{width:12px;height:12px;opacity:.4}
+
+    .section{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    .sec-title{font-size:.65rem;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding:12px 16px;border-bottom:1px solid var(--border)}
+
+    /* Profile row */
+    .profile-row{display:flex;align-items:center;gap:14px;padding:16px}
+    .pf-av{width:48px;height:48px;border-radius:50%;overflow:hidden;border:2px solid var(--border);flex-shrink:0}
+    .pf-av img{width:100%;height:100%;object-fit:cover}
+    .pf-info .pf-name{font-size:.9rem;font-weight:700;color:var(--text)}
+    .pf-info .pf-tag{font-size:.65rem;color:var(--muted);margin-top:2px}
+
+    /* Theme options */
+    .theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px}
+    .theme-opt{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}
+    .theme-swatch{width:100%;height:40px;border-radius:8px;border:2px solid var(--border);transition:border-color .2s;position:relative;overflow:hidden}
+    .theme-opt.on .theme-swatch{border-color:#d62828;box-shadow:0 0 0 1px #d62828}
+    .theme-opt:hover .theme-swatch{border-color:rgba(128,128,128,0.4)}
+    .theme-lbl{font-size:.6rem;color:var(--muted);font-weight:500}
+    .theme-opt.on .theme-lbl{color:var(--text)}
+
+    .sw-dark{background:#0c0c0c}
+    .sw-light{background:#f0f0f0}
+    .sw-system{background:linear-gradient(135deg,#0c0c0c 50%,#f0f0f0 50%)}
+    .sw-darkblue{background:#080d1a}
+
+    /* Row item */
+    .row-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-top:1px solid var(--border)}
+    .row-item:first-child{border-top:none}
+    .ri-left{display:flex;flex-direction:column;gap:2px}
+    .ri-title{font-size:.78rem;font-weight:500;color:var(--text)}
+    .ri-sub{font-size:.63rem;color:var(--muted)}
+
+    .btn-logout{display:flex;align-items:center;gap:7px;padding:7px 16px;border-radius:8px;border:1px solid rgba(214,40,40,0.35);background:rgba(214,40,40,0.08);color:#d62828;font-family:'Inter',sans-serif;font-size:.68rem;font-weight:600;cursor:pointer;transition:background .2s,border-color .2s}
+    .btn-logout:hover{background:rgba(214,40,40,0.15);border-color:rgba(214,40,40,0.6)}
+    .btn-logout svg{width:14px;height:14px}
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="app">
+  <nav id="sb">
+    <a class="si" href="/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></a>
+    <a class="si" href="/stats.html" style="position:relative"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="si-badge">0</div></a>
+    <a class="si on" href="/settings.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a>
+    <div class="si-av" onclick="window.location.href='/settings.html'"><img id="nav-av" src="" alt=""/></div>
+  </nav>
+
+  <div id="main">
+    <div class="breadcrumb">Dashboard <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><span>Settings</span></div>
+
+    <!-- Profile -->
+    <div class="section">
+      <div class="sec-title">Profile</div>
+      <div class="profile-row">
+        <div class="pf-av"><img id="pf-avatar" src="" alt=""/></div>
+        <div class="pf-info">
+          <div class="pf-name" id="pf-name">Loading...</div>
+          <div class="pf-tag" id="pf-tag">@...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme -->
+    <div class="section">
+      <div class="sec-title">Appearance</div>
+      <div class="theme-grid">
+        <div class="theme-opt" data-theme="dark">
+          <div class="theme-swatch sw-dark"></div>
+          <div class="theme-lbl">Dark</div>
+        </div>
+        <div class="theme-opt" data-theme="light">
+          <div class="theme-swatch sw-light"></div>
+          <div class="theme-lbl">Light</div>
+        </div>
+        <div class="theme-opt" data-theme="system">
+          <div class="theme-swatch sw-system"></div>
+          <div class="theme-lbl">System</div>
+        </div>
+        <div class="theme-opt" data-theme="dark-blue">
+          <div class="theme-swatch sw-darkblue"></div>
+          <div class="theme-lbl">Dark Blue</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account -->
+    <div class="section">
+      <div class="sec-title">Account</div>
+      <div class="row-item">
+        <div class="ri-left">
+          <div class="ri-title">Logout</div>
+          <div class="ri-sub">Sign out of your Discord account</div>
+        </div>
+        <button class="btn-logout" onclick="window.location.href='/api/logout'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(async()=>{
+  try{
+    const r=await fetch('/api/me');
+    if(!r.ok){window.location.href='/login.html';return;}
+    const u=await r.json();
+    const av=u.avatar?`https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=128`:`https://cdn.discordapp.com/embed/avatars/0.png`;
+    document.getElementById('nav-av').src=av;
+    document.getElementById('pf-avatar').src=av;
+    document.getElementById('pf-name').textContent=u.global_name||u.username;
+    document.getElementById('pf-tag').textContent=`@${u.username}`;
+  }catch{window.location.href='/login.html';}
+})();
+
+const current=localStorage.getItem('sv_theme')||'dark';
+document.querySelectorAll('.theme-opt').forEach(opt=>{
+  if(opt.dataset.theme===current)opt.classList.add('on');
+  opt.addEventListener('click',()=>{
+    document.querySelectorAll('.theme-opt').forEach(x=>x.classList.remove('on'));
+    opt.classList.add('on');
+    applyTheme(opt.dataset.theme);
+  });
+});
+
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let W=canvas.width=window.innerWidth,H=canvas.height=window.innerHeight;
+const mouse={x:W/2,y:H/2};
+window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;});
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+class Dot{constructor(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=Math.random()<.15?1.8+Math.random()*1.2:.6+Math.random()*1;this.alpha=.07+Math.random()*.3;this.vx=(Math.random()-.5)*.1;this.vy=(Math.random()-.5)*.1;}update(){const dx=mouse.x-this.x,dy=mouse.y-this.y,d=Math.sqrt(dx*dx+dy*dy)||1;this.vx+=(dx/d)*.003;this.vy+=(dy/d)*.003;this.vx*=.98;this.vy*=.98;this.x+=this.vx;this.y+=this.vy;if(this.x<-4)this.x=W+4;if(this.x>W+4)this.x=-4;if(this.y<-4)this.y=H+4;if(this.y>H+4)this.y=-4;}draw(){ctx.save();ctx.globalAlpha=this.alpha;ctx.fillStyle='#c0392b';ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fill();ctx.restore();}}
+const dots=Array.from({length:80},()=>new Dot());
+(function loop(){ctx.clearRect(0,0,W,H);dots.forEach(d=>{d.update();d.draw();});requestAnimationFrame(loop);})();
+</script>
+</body>
+</html>

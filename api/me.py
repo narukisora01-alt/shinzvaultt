@@ -14,5 +14,7 @@ def me():
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return jsonify(payload)
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-        return jsonify({"error": "invalid token"}), 401
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "invalid"}), 401

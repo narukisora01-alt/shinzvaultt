@@ -5,6 +5,6 @@ app = Flask(__name__)
 @app.route("/api/logout")
 @app.route("/")
 def logout():
-    response = make_response(redirect("/login.html"))
-    response.delete_cookie("sv_token", path="/")
-    return response
+    resp = make_response(redirect("/login.html"))
+    resp.delete_cookie("sv_token", path="/")
+    return resp

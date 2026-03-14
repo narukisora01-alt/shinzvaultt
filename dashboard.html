@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShinzVault — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --red: #d62828;
+      --red-dim: rgba(214,40,40,0.18);
+      --bg: #0c0c0c;
+      --surface: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.07);
+      --text: #fff;
+      --muted: rgba(255,255,255,0.28);
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    canvas { position: fixed; inset: 0; z-index: 0; }
+
+    #app {
+      position: relative; z-index: 1;
+      display: flex; height: 100vh; overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 56px; flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      background: rgba(0,0,0,0.35);
+      display: flex; flex-direction: column;
+      align-items: center; padding: 18px 0; gap: 6px;
+    }
+
+    .s-icon {
+      width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px; color: var(--muted); cursor: pointer;
+      transition: color .2s, background .2s; position: relative;
+    }
+    .s-icon:hover, .s-icon.active { color: #fff; background: var(--red-dim); }
+    .s-icon svg { width: 17px; height: 17px; }
+    .s-badge {
+      position: absolute; top: 3px; right: 3px;
+      background: var(--red); color: #fff; font-size: 8px; font-weight: 700;
+      width: 13px; height: 13px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .s-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      overflow: hidden; margin-top: auto;
+    }
+    .s-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── Main scroll area ── */
+    #main {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding: 18px 20px 24px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    #main::-webkit-scrollbar { width: 3px; }
+    #main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Top row: 3 stat cards + mini right panel ── */
+    #top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 220px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px 12px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+
+    .sc-top {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .sc-label { font-size: 0.7rem; color: var(--muted); font-weight: 500; }
+    .sc-icon { color: var(--muted); }
+    .sc-icon svg { width: 14px; height: 14px; }
+
+    .sc-value {
+      font-size: 1.7rem; font-weight: 700; line-height: 1.1;
+      margin: 2px 0;
+    }
+
+    .sc-spark {
+      position: relative; height: 36px; margin: 2px 0;
+    }
+    .sc-spark svg { width: 100%; height: 100%; display: block; }
+
+    .sc-badge {
+      position: absolute; bottom: 4px; right: 0;
+      background: var(--red-dim);
+      border: 1px solid rgba(214,40,40,0.35);
+      color: var(--red); font-size: 0.6rem; font-weight: 700;
+      padding: 2px 6px; border-radius: 4px;
+      display: flex; align-items: center; gap: 2px;
+    }
+
+    .sc-sub { font-size: 0.6rem; color: var(--muted); }
+
+    /* Right mini panel */
+    #mini-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    .mp-chart { height: 52px; }
+    .mp-chart svg { width: 100%; height: 100%; display: block; }
+    .mp-week {
+      display: flex; justify-content: space-between;
+      font-size: 0.55rem; color: var(--muted);
+    }
+
+    .mp-stats {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px; padding-top: 6px;
+      border-top: 1px solid var(--border);
+    }
+    .mp-stat .ms-label { font-size: 0.58rem; color: var(--muted); margin-bottom: 3px; }
+    .mp-stat .ms-val { font-size: 1rem; font-weight: 700; }
+    .mp-stat .ms-sub { font-size: 0.55rem; color: var(--muted); margin-top: 1px; }
+
+    /* ── Middle row: Overview + Leaderboard ── */
+    #mid-row {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 12px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+
+    .panel-title { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 12px; }
+
+    #overview-chart { height: 160px; }
+    #overview-chart svg { width: 100%; height: 100%; display: block; }
+    .ov-week {
+      display: flex; justify-content: space-between;
+      font-size: 0.6rem; color: var(--muted); margin-top: 8px;
+    }
+
+    /* Leaderboard */
+    #lb-panel { display: flex; flex-direction: column; }
+    .lb-list { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .lb-empty {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      font-size: 0.63rem; color: var(--muted); padding: 20px 0;
+    }
+
+    /* ── Bottom: Live Hits table ── */
+    #live-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+
+    .live-header { text-align: center; margin-bottom: 12px; }
+    .live-title { font-size: 0.85rem; font-weight: 700; }
+    .live-sub { font-size: 0.6rem; color: var(--muted); margin-top: 2px; cursor: pointer; }
+    .live-sub:hover { color: var(--red); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      font-size: 0.62rem; color: var(--muted); font-weight: 500;
+      text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border);
+    }
+    thead th svg { width: 11px; height: 11px; vertical-align: middle; margin-left: 3px; opacity: 0.5; }
+    tbody td {
+      font-size: 0.68rem; padding: 8px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .td-user { display: flex; align-items: center; gap: 8px; }
+    .td-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; background: var(--border); }
+    .td-empty {
+      text-align: center; padding: 20px;
+      font-size: 0.63rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="app">
+  <nav id="sidebar">
+    <div class="s-icon active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    </div>
+    <div class="s-icon" style="position:relative;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <div class="s-badge">0</div>
+    </div>
+    <div class="s-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </div>
+    <div class="s-avatar"><img id="nav-avatar" src="" alt="" /></div>
+  </nav>
+
+  <div id="main">
+
+    <!-- Top row -->
+    <div id="top-row">
+
+      <!-- Total Accounts -->
+      <div class="stat-card">
+        <div class="sc-top">
+          <span class="sc-label">Total Accounts</span>
+          <span class="sc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        </div>
+        <div class="sc-value">0</div>
+        <div class="sc-spark">
+          <svg viewBox="0 0 200 36" preserveAspectRatio="none">
+            <polyline points="0,30 40,30 80,30 120,30 160,30 200,30" fill="none" stroke="#d62828" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7"/>
+          </svg>
+          <div class="sc-badge">↑ 0%</div>
+        </div>
+        <div class="sc-sub">+0 today &bull; 0 Daily</div>
+      </div>
+
+      <!-- Total Visits -->
+      <div class="stat-card">
+        <div class="sc-top">
+          <span class="sc-label">Total Visits</span>
+          <span class="sc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        </div>
+        <div class="sc-value">0</div>
+        <div class="sc-spark">
+          <svg viewBox="0 0 200 36" preserveAspectRatio="none">
+            <polyline points="0,30 40,30 80,30 120,30 160,30 200,30" fill="none" stroke="#d62828" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7"/>
+          </svg>
+          <div class="sc-badge">↑ 0%</div>
+        </div>
+        <div class="sc-sub">+0 today &bull; 0 Daily</div>
+      </div>
+
+      <!-- Total URL Clicks -->
+      <div class="stat-card">
+        <div class="sc-top">
+          <span class="sc-label">Total URL Clicks</span>
+          <span class="sc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+        </div>
+        <div class="sc-value">0</div>
+        <div class="sc-spark">
+          <svg viewBox="0 0 200 36" preserveAspectRatio="none">
+            <polyline points="0,30 40,30 80,30 120,30 160,30 200,30" fill="none" stroke="#d62828" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7"/>
+          </svg>
+          <div class="sc-badge">↑ 0%</div>
+        </div>
+        <div class="sc-sub">+0 today &bull; 0 Daily</div>
+      </div>
+
+      <!-- Mini right panel -->
+      <div id="mini-panel">
+        <div class="mp-chart">
+          <svg viewBox="0 0 220 52" preserveAspectRatio="none">
+            <polyline points="0,44 31,44 63,44 94,44 126,44 157,44 189,44 220,44" fill="none" stroke="#d62828" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7"/>
+          </svg>
+        </div>
+        <div class="mp-week">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div class="mp-stats">
+          <div class="mp-stat">
+            <div class="ms-label">Summary</div>
+            <div class="ms-val">0</div>
+            <div class="ms-sub">+0 today</div>
+          </div>
+          <div class="mp-stat">
+            <div class="ms-label">RAP</div>
+            <div class="ms-val">0</div>
+            <div class="ms-sub">+0 today</div>
+          </div>
+          <div class="mp-stat">
+            <div class="ms-label">Balance</div>
+            <div class="ms-val">0</div>
+            <div class="ms-sub">+0 today</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Mid row: Overview + Leaderboard -->
+    <div id="mid-row">
+      <div class="panel">
+        <div class="panel-title">Overview</div>
+        <div id="overview-chart">
+          <svg viewBox="0 0 700 160" preserveAspectRatio="none">
+            <line x1="0" y1="140" x2="700" y2="140" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <line x1="0" y1="100" x2="700" y2="100" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+            <line x1="0" y1="60"  x2="700" y2="60"  stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+            <polyline points="0,140 100,140 200,140 300,140 400,140 500,140 600,140 700,140" fill="none" stroke="#d62828" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="ov-week">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+      </div>
+
+      <div class="panel" id="lb-panel">
+        <div class="panel-title">Leaderboard</div>
+        <div class="lb-list">
+          <div class="lb-empty">No data yet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Hits -->
+    <div id="live-section">
+      <div class="live-header">
+        <div class="live-title">Live Hits (GLOBAL)</div>
+        <div class="live-sub">Click to switch to Live Visits</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>User <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></th>
+            <th>Time <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg></th>
+            <th>Balance <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg></th>
+            <th>Summary <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></th>
+            <th>Rap <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></th>
+            <th>Hitter <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></th>
+          </tr>
+        </thead>
+        <tbody id="hits-body">
+          <tr><td colspan="6" class="td-empty">No hits yet</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  async function loadUser() {
+    try {
+      const res  = await fetch('/api/me');
+      const user = await res.json();
+      if (user.error) { window.location.href = '/login.html'; return; }
+      const avatar = user.avatar
+        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
+        : `https://cdn.discordapp.com/embed/avatars/0.png`;
+      document.getElementById('nav-avatar').src = avatar;
+    } catch {
+      window.location.href = '/login.html';
+    }
+  }
+  loadUser();
+
+  const canvas = document.getElementById('c');
+  const ctx    = canvas.getContext('2d');
+  let W = canvas.width  = window.innerWidth;
+  let H = canvas.height = window.innerHeight;
+  const mouse = { x: W / 2, y: H / 2 };
+  window.addEventListener('resize', () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+  class Dot {
+    constructor() {
+      this.x = Math.random() * W; this.y = Math.random() * H;
+      this.r = Math.random() < 0.15 ? 1.8 + Math.random() * 1.2 : 0.6 + Math.random() * 1.0;
+      this.alpha = 0.07 + Math.random() * 0.3;
+      this.vx = (Math.random() - 0.5) * 0.1;
+      this.vy = (Math.random() - 0.5) * 0.1;
+    }
+    update() {
+      const dx = mouse.x - this.x, dy = mouse.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      this.vx += (dx / dist) * 0.003; this.vy += (dy / dist) * 0.003;
+      this.vx *= 0.98; this.vy *= 0.98;
+      this.x += this.vx; this.y += this.vy;
+      if (this.x < -4) this.x = W + 4; if (this.x > W + 4) this.x = -4;
+      if (this.y < -4) this.y = H + 4; if (this.y > H + 4) this.y = -4;
+    }
+    draw() {
+      ctx.save(); ctx.globalAlpha = this.alpha;
+      ctx.fillStyle = '#c0392b';
+      ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fill(); ctx.restore();
+    }
+  }
+
+  const dots = Array.from({ length: 80 }, () => new Dot());
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    for (const d of dots) { d.update(); d.draw(); }
+    requestAnimationFrame(loop);
+  }
+  loop();
+</script>
+</body>
+</html>

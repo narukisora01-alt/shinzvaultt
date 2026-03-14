@@ -1,5 +1,9 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/auth.py" }
+  ],
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/404.html", "status": 404 }
   ]
 }

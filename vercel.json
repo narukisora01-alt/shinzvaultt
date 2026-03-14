@@ -1,6 +1,5 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/auth.py" }
-  ],
-  "404": "/404.html"
+  ]
 }

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ShinzVault — Login</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <title>ShinzVault</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
@@ -14,83 +14,46 @@
       font-family: 'Space Mono', monospace;
     }
     canvas { position: fixed; inset: 0; display: block; }
-
     #ui {
       position: fixed; inset: 0;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      z-index: 10; gap: 32px;
+      z-index: 10; gap: 28px;
     }
-
     #logo {
       font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(2.4rem, 6vw, 4.5rem);
+      font-size: clamp(3.2rem, 9vw, 6.5rem);
       letter-spacing: 0.2em; color: #fff;
       opacity: 0;
-      animation: fadeUp 0.7s ease 0.2s forwards;
+      animation: fadeUp 0.8s ease 0.3s forwards;
     }
     #logo span { color: #d62828; }
 
-    #card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 12px;
-      padding: 40px 48px;
-      display: flex; flex-direction: column;
-      align-items: center; gap: 24px;
-      opacity: 0;
-      animation: fadeUp 0.7s ease 0.4s forwards;
-      min-width: 320px;
-    }
-
-    #card h2 {
-      font-size: 0.7rem;
-      letter-spacing: 0.25em;
-      color: rgba(255,255,255,0.3);
-      text-transform: uppercase;
-      font-weight: 400;
-    }
-
     #discord-btn {
-      display: flex; align-items: center; gap: 12px;
-      background: #5865F2;
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
       font-family: 'Space Mono', monospace;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 700;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       text-decoration: none;
-      padding: 14px 28px;
+      padding: 13px 26px;
       border-radius: 8px;
-      border: none;
       cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-      width: 100%;
-      justify-content: center;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.5s forwards;
     }
     #discord-btn:hover {
-      background: #4752c4;
+      background: rgba(0, 0, 0, 0.75);
+      border-color: rgba(255, 255, 255, 0.22);
       transform: translateY(-1px);
     }
     #discord-btn:active { transform: translateY(0); }
-
-    #discord-btn svg {
-      width: 20px; height: 20px; flex-shrink: 0;
-    }
-
-    #divider {
-      width: 100%;
-      height: 1px;
-      background: rgba(255,255,255,0.06);
-    }
-
-    #footer {
-      font-size: 0.58rem;
-      letter-spacing: 0.15em;
-      color: rgba(255,255,255,0.15);
-      text-transform: uppercase;
-    }
+    #discord-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
 
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(12px); }
@@ -100,22 +63,15 @@
 </head>
 <body>
 <canvas id="c"></canvas>
-
 <div id="ui">
   <div id="logo">SHINZ<span>VAULT</span></div>
-  <div id="card">
-    <h2>Sign in to continue</h2>
-    <a id="discord-btn" href="/api/login">
-      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.001.022.015.043.032.056a19.9 19.9 0 0 0 5.993 3.03.077.077 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
-      </svg>
-      Login with Discord
-    </a>
-    <div id="divider"></div>
-    <div id="footer">ShinzVault &mdash; Secure Access</div>
-  </div>
+  <a id="discord-btn" href="/api/login">
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.001.022.015.043.032.056a19.9 19.9 0 0 0 5.993 3.03.077.077 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+    </svg>
+    Login with Discord
+  </a>
 </div>
-
 <script>
   const canvas = document.getElementById('c');
   const ctx    = canvas.getContext('2d');
@@ -124,7 +80,6 @@
   const mouse = { x: W / 2, y: H / 2 };
   window.addEventListener('resize', () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
   window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-
   class Dot {
     constructor() {
       this.x = Math.random() * W; this.y = Math.random() * H;
@@ -149,7 +104,6 @@
       ctx.fill(); ctx.restore();
     }
   }
-
   const dots = Array.from({ length: 80 }, () => new Dot());
   function loop() {
     ctx.clearRect(0, 0, W, H);
